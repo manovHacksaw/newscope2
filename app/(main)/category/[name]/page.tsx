@@ -7,7 +7,8 @@ export default async function CategoryPage({
 }: {
   params: { name: string };
 }) {
-  const category = params.name.toLowerCase(); // Ensure case-insensitive matching.
+  const Params = await params;
+  const category = Params.name.toLowerCase(); // Ensure case-insensitive matching.
 
   const validCategories = categories.map((c) => c.name.toLowerCase());
 
@@ -17,9 +18,8 @@ export default async function CategoryPage({
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-4">Category: {category}</h1>
-      {/* Add more content for the category page here */}
-      <NewsList category = " "/>
+     
+      <NewsList category={category} />
     </div>
   );
 }

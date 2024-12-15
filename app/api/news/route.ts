@@ -18,10 +18,24 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     // Initialize database connection
     await connectDB();
 
-    // Fetch news with populated author details
-    const data = await News.find()
-      
-      .sort({ createdAt: -1 });
+    // Get the category from the query parameters
+    const { searchParams } = new URL(request.url);
+    const category = searchParams.get('category');
+    console.log("GOT CATEGROY: ", category)
+
+    // Prepare the query
+    let query = {};
+    if (category) {
+      query = { category: { $regex: new RegExp(`^${category}$`, "i") } }; // Case-insensitive filter
+    }
+
+
+    
+
+    // Fetch news with populated author details and apply category filter if present
+    const data = await News.find(query).sort({ createdAt: -1 });
+    console.log(data)
+
 
     return NextResponse.json(
       {
@@ -43,7 +57,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     );
   }
 }
-
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   console.log("HITTNG POST NEWS")

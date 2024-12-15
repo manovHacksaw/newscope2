@@ -6,9 +6,21 @@ import NewsCard from './NewsCard';
 const ARTICLES_PER_PAGE = 12;
 
 // Fetch News function
-export async function fetchNews(): Promise<any[]> {
+export async function fetchNews(category?: string, search?: string): Promise<any[]> {
   try {
-    const response = await fetch("http://localhost:3000/api/news");
+    const url = new URL("http://localhost:3000/api/news");
+    
+    if (category) {
+      url.searchParams.append("category", category);
+    }
+    
+    if (search) {
+      url.searchParams.append("search", search);
+    }
+    
+    console.log(url.toString());
+    
+    const response = await fetch(url.toString());
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -24,9 +36,10 @@ export async function fetchNews(): Promise<any[]> {
 
 interface NewsListProps {
   category?: string;
+  search?:string;
 }
 
-export const NewsList: React.FC<NewsListProps> = ( {category}) => {
+export const NewsList: React.FC<NewsListProps> = ( {category, search}) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [newsArticles, setNewsArticles] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,7 +50,7 @@ export const NewsList: React.FC<NewsListProps> = ( {category}) => {
     const loadNews = async () => {
       try {
         setIsLoading(true);
-        const articles = await fetchNews();
+        const articles = await fetchNews(category);
         setNewsArticles(articles);
         setError(null);
       } catch (err) {
@@ -49,7 +62,7 @@ export const NewsList: React.FC<NewsListProps> = ( {category}) => {
     };
 
     loadNews();
-  }, []);
+  }, [category, search]);
 
   // Calculate the total number of pages
   const totalPages = Math.ceil(newsArticles.length / ARTICLES_PER_PAGE);
@@ -105,7 +118,7 @@ export const NewsList: React.FC<NewsListProps> = ( {category}) => {
 
   return (
     <div className="max-w-screen-xl mx-auto px-4 py-8">
-      <h2 className="text-3xl font-bold text-gray-900 mb-8 px-1">Latest News</h2>
+      <h2 className="text-3xl font-bold text-gray-900 mb-8 px-1"> {category ? `Showing Latest Updates from ${category.toUpperCase()}`:"Latest News"}</h2>
       {/* Animated News Cards Grid */}
       <motion.div
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
