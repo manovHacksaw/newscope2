@@ -50,7 +50,7 @@ export const NewsList: React.FC<NewsListProps> = ( {category, search}) => {
     const loadNews = async () => {
       try {
         setIsLoading(true);
-        const articles = await fetchNews(category);
+        const articles = await fetchNews(category, search);
         setNewsArticles(articles);
         setError(null);
       } catch (err) {

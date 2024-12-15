@@ -21,6 +21,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     // Get the category from the query parameters
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
+    const search = searchParams.get("search");
     console.log("GOT CATEGROY: ", category)
 
     // Prepare the query
@@ -29,12 +30,19 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       query = { category: { $regex: new RegExp(`^${category}$`, "i") } }; // Case-insensitive filter
     }
 
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
+    }
+
 
     
 
     // Fetch news with populated author details and apply category filter if present
     const data = await News.find(query).sort({ createdAt: -1 });
-    console.log(data)
+    console.log("GOT DATA:" , data[0])
 
 
     return NextResponse.json(

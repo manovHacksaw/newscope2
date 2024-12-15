@@ -4,7 +4,7 @@ import Image from "next/image";
 import { ArrowLeft, ArrowRight, BookOpen } from "lucide-react";
 
 interface Article {
-  id: string;
+  _id: string;
   title: string;
   imageUrl: string;
   author?: string;
@@ -120,7 +120,7 @@ const TopRead: React.FC<TopReadProps> = ({
       >
         {articles.map((article, index) => (
           <div 
-            key={article.id}
+            key={article._id}
             className="article-item flex-shrink-0 w-full md:w-1/3 p-4"
           >
             <div className="bg-white rounded-lg shadow-lg overflow-hidden transition-all duration-300 hover:scale-105">
