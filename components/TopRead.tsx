@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import Image from "next/image";
 import { ArrowLeft, ArrowRight, BookOpen } from "lucide-react";
+import Link from "next/link";
 
 interface Article {
   _id: string;
@@ -119,9 +120,11 @@ const TopRead: React.FC<TopReadProps> = ({
         className="flex overflow-hidden scroll-smooth"
       >
         {articles.map((article, index) => (
+          <Link href={`/news/${article._id}`}    key={article._id} className="article-item flex-shrink-0 w-full md:w-1/3 p-4">
           <div 
-            key={article._id}
-            className="article-item flex-shrink-0 w-full md:w-1/3 p-4"
+          
+          
+
           >
             <div className="bg-white rounded-lg shadow-lg overflow-hidden transition-all duration-300 hover:scale-105">
               {/* Image Section */}
@@ -164,7 +167,8 @@ const TopRead: React.FC<TopReadProps> = ({
                 </div>
               </div>
             </div>
-          </div>
+          </div></Link>
+          
         ))}
       </div>
     </div>

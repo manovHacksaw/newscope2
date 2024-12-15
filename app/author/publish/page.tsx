@@ -1,5 +1,4 @@
-"use client";
-
+"use client"
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
@@ -25,7 +24,7 @@ const categories = [
   "Health",
 ];
 
-export default function CreateNews()  {
+export default function CreateNews() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -34,6 +33,7 @@ export default function CreateNews()  {
     thumbnail: "",
     videoLink: "",
     category: "",
+    author: "", // Add the author field
   });
 
   const requestData = new FormData();
@@ -42,19 +42,16 @@ export default function CreateNews()  {
   requestData.append("thumbnail", formData.thumbnail);
   requestData.append("videoLink", formData.videoLink);
   requestData.append("category", formData.category);
+  requestData.append("author", formData.author); // Pass author directly
 
   const handleSubmit = async (e: React.FormEvent) => {
-    console.log(requestData)
     e.preventDefault();
     setIsLoading(true);
 
     try {
       const response = await fetch("/api/news", {
         method: "POST",
-        headers: {
-          "Content-Type": "multipart/form-data; boundary=Myborunday",
-        },
-        body: requestData,
+        body: requestData, // Don't set Content-Type header, browser handles it automatically
       });
 
       if (!response.ok) {
@@ -82,6 +79,7 @@ export default function CreateNews()  {
         <h1 className="text-2xl font-bold mb-6">Create News Article</h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Title Input */}
           <div className="space-y-2">
             <label htmlFor="title" className="text-sm font-medium">
               Title
@@ -96,6 +94,7 @@ export default function CreateNews()  {
             />
           </div>
 
+          {/* Description Input */}
           <div className="space-y-2">
             <label htmlFor="description" className="text-sm font-medium">
               Description
@@ -111,6 +110,7 @@ export default function CreateNews()  {
             />
           </div>
 
+          {/* Thumbnail Input */}
           <div className="space-y-2">
             <label htmlFor="thumbnail" className="text-sm font-medium">
               Thumbnail URL
@@ -126,6 +126,7 @@ export default function CreateNews()  {
             />
           </div>
 
+          {/* Video Link Input */}
           <div className="space-y-2">
             <label htmlFor="videoLink" className="text-sm font-medium">
               Video Link (Optional)
@@ -140,6 +141,7 @@ export default function CreateNews()  {
             />
           </div>
 
+          {/* Category Select */}
           <div className="space-y-2">
             <label htmlFor="category" className="text-sm font-medium">
               Category
@@ -155,7 +157,7 @@ export default function CreateNews()  {
               </SelectTrigger>
               <SelectContent>
                 {categories.map((category) => (
-                  <SelectItem key={category} value={category.toLowerCase()}>
+                  <SelectItem key={category} value={category}>
                     {category}
                   </SelectItem>
                 ))}
@@ -163,13 +165,27 @@ export default function CreateNews()  {
             </Select>
           </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          {/* Author Input */}
+          <div className="space-y-2">
+            <label htmlFor="author" className="text-sm font-medium">
+              Author
+            </label>
+            <Input
+              id="author"
+              name="author"
+              value={formData.author}
+              onChange={handleChange}
+              required
+              placeholder="Enter author name"
+            />
+          </div>
+
+          {/* Submit Button */}
+          <Button type="submit" disabled={isLoading}>
             {isLoading ? "Creating..." : "Create News"}
           </Button>
         </form>
       </Card>
     </div>
   );
-};
-
-
+}

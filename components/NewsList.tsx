@@ -8,17 +8,24 @@ const ARTICLES_PER_PAGE = 12;
 // Fetch News function
 export async function fetchNews(category?: string, search?: string): Promise<any[]> {
   try {
-    const url = new URL("http://localhost:3000/api/news");
-    
-    if (category) {
-      url.searchParams.append("category", category);
+    let url = "/api/news";
+
+    const queryParams: string[] = [];
+
+    if (category) { 
+      queryParams.push(`category=${encodeURIComponent(category)}`);
     }
-    
+
     if (search) {
-      url.searchParams.append("search", search);
+      queryParams.push(`search=${encodeURIComponent(search)}`);
     }
-    
-    console.log(url.toString());
+
+    if (queryParams.length > 0) {
+      url += `?${queryParams.join("&")}`;
+    }
+
+    console.log(url);
+
     
     const response = await fetch(url.toString());
     if (!response.ok) {

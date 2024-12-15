@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import Link from 'next/link';
 
 interface NewsArticle {
   id: string;
@@ -40,7 +41,8 @@ const NewsCard: React.FC<NewsCardProps> = ({ article }) => {
   console.log(article)
 
   return (
-    <div className="bg-white cursor-pointer rounded-lg shadow-lg overflow-hidden hover:shadow-2xl hover:scale-105 transition-transform duration-300 h-full hover:bg-gray-50">
+    <Link href={`/news/${article._id}`}> 
+        <div className="bg-white cursor-pointer rounded-lg shadow-lg overflow-hidden hover:shadow-2xl hover:scale-105 transition-transform duration-300 h-full hover:bg-gray-50">
       <div className="relative h-48 w-full group">
         <Image
           src={article.thumbnail}
@@ -68,7 +70,8 @@ const NewsCard: React.FC<NewsCardProps> = ({ article }) => {
           <span>{formatDate(article.createdAt)}</span>
         </div>
       </div>
-    </div>
+    </div></Link>
+
   );
 };
 

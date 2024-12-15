@@ -11,6 +11,7 @@ const newsFormSchema = z.object({
   thumbnail: z.string().url("Invalid thumbnail URL"),
   videoLink: z.string().url("Invalid video URL").optional().nullable(),
   category: z.string().min(1, "Category is required"),
+  author: z.string().min(1, "Author is required"), // Author is a string
 });
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -42,6 +43,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     // Fetch news with populated author details and apply category filter if present
     const data = await News.find(query).sort({ createdAt: -1 });
+
     console.log("GOT DATA:" , data[0])
 
 
@@ -67,13 +69,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
-  console.log("HITTNG POST NEWS")
+  console.log("HITTING POST NEWS");
   try {
     await connectDB();
 
     const formData = await request.formData();
-    console.log("RECIEVED", formData)
-    
+    console.log("RECIEVED", formData);
+
     // Extract form data
     const newsData = {
       title: formData.get('title'),
@@ -81,11 +83,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       thumbnail: formData.get('thumbnail'),
       videoLink: formData.get('videoLink') || null,
       category: formData.get('category'),
-      // TODO: Replace with actual authenticated user ID
-      author: "64f5c3d205c6a91bf751e123"
+      // Set author to a string (your name as admin)
+      author: formData.get("author") // Replace "Admin Name" with your name or use an environment variable
     };
 
-    console.log("NEWS DATA" , newsData)
+    console.log("NEWS DATA", newsData);
 
     // Validate the data
     const validatedData = newsFormSchema.parse(newsData);
@@ -103,7 +105,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   } catch (error) {
     console.error("Error creating news:", error);
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         {
