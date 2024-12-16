@@ -1,9 +1,11 @@
-import News from "@/models/News";
-import User from "@/models/User"; // Import User model
-import connectDB from "@/lib/mongoDb";
-import {z} from "zod"
-
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+
+import News from "@/models/News";
+import connectDB from "@/lib/mongoDb";
+
+// Configure Cloudinary
+
 
 const newsFormSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -11,88 +13,29 @@ const newsFormSchema = z.object({
   thumbnail: z.string().url("Invalid thumbnail URL"),
   videoLink: z.string().url("Invalid video URL").optional().nullable(),
   category: z.string().min(1, "Category is required"),
-  author: z.string().min(1, "Author is required"), // Author is a string
+  author: z.string().min(1, "Author is required"),
 });
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
-  try {
-    // Initialize database connection
-    await connectDB();
-
-    // Get the category from the query parameters
-    const { searchParams } = new URL(request.url);
-    const category = searchParams.get('category');
-    const search = searchParams.get("search");
-    console.log("GOT CATEGROY: ", category)
-
-    // Prepare the query
-    let query = {};
-    if (category) {
-      query = { category: { $regex: new RegExp(`^${category}$`, "i") } }; // Case-insensitive filter
-    }
-
-    if (search) {
-      query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } }
-      ];
-    }
-
-
-    
-
-    // Fetch news with populated author details and apply category filter if present
-    const data = await News.find(query).sort({ createdAt: -1 });
-
-    console.log("GOT DATA:" , data[0])
-
-
-    return NextResponse.json(
-      {
-        success: true,
-        message: "News items retrieved successfully.",
-        data: data,
-      },
-      { status: 200 }
-    );
-  } catch (error) {
-    console.error("Error fetching news:", error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Failed to retrieve news items.",
-        data: [],
-      },
-      { status: 500 }
-    );
-  }
-}
-
 export async function POST(request: NextRequest): Promise<NextResponse> {
-  console.log("HITTING POST NEWS");
   try {
     await connectDB();
 
     const formData = await request.formData();
-    console.log("RECIEVED", formData);
 
-    // Extract form data
+    // Extract form data values
     const newsData = {
-      title: formData.get('title'),
-      description: formData.get('description'),
-      thumbnail: formData.get('thumbnail'),
-      videoLink: formData.get('videoLink') || null,
-      category: formData.get('category'),
-      // Set author to a string (your name as admin)
-      author: formData.get("author") // Replace "Admin Name" with your name or use an environment variable
+      title: formData.get('title') as string,
+      description: formData.get('description') as string,
+      thumbnail: formData.get('thumbnail') as string,
+      videoLink: formData.get('videoLink') as string || null,
+      category: formData.get('category') as string,
+      author: formData.get('author') as string || "Admin",
     };
 
-    console.log("NEWS DATA", newsData);
-
-    // Validate the data
+    // Validate the data using Zod schema
     const validatedData = newsFormSchema.parse(newsData);
 
-    // Create new news entry
+    // Create the new news entry in the database
     const news = await News.create(validatedData);
 
     return NextResponse.json(
@@ -127,3 +70,47 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   }
 }
+
+export async function GET(request: NextRequest): Promise<NextResponse> {
+  try {
+    await connectDB();
+
+    const { searchParams } = new URL(request.url);
+    const category = searchParams.get('category');
+    const search = searchParams.get("search");
+
+    let query: any = {};
+    if (category) {
+      query.category = { $regex: new RegExp(`^${category}$`, "i") };
+    }
+
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const data = await News.find(query).sort({ createdAt: -1 });
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: "News items retrieved successfully.",
+        data: data,
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error fetching news:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Failed to retrieve news items.",
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
+  }
+}
+
