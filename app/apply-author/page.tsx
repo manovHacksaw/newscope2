@@ -1,5 +1,5 @@
 import ApplyAuthorForm from "@/components/ApplyAuthorForm";
-import Image from "next/image";
+
 
 export default function ApplyAuthor() {
     return (

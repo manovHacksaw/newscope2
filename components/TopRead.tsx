@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import Image from "next/image";
 import { ArrowLeft, ArrowRight, BookOpen } from "lucide-react";
@@ -7,7 +7,7 @@ import Link from "next/link";
 interface Article {
   _id: string;
   title: string;
-  imageUrl: string;
+  thumbnail: string;
   author?: string;
   readTime?: number;
   excerpt?: string;
@@ -28,7 +28,6 @@ const TopRead: React.FC<TopReadProps> = ({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const autoScrollTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Define scrollToArticle as a regular function
   const scrollToArticle = useCallback((index: number) => {
     if (containerRef.current) {
       const container = containerRef.current;
@@ -41,7 +40,6 @@ const TopRead: React.FC<TopReadProps> = ({
     }
   }, []);
 
-  // Pause auto-scrolling on hover
   const handleMouseEnter = () => {
     setIsAutoScrolling(false);
     if (autoScrollTimerRef.current) {
@@ -54,7 +52,6 @@ const TopRead: React.FC<TopReadProps> = ({
     startAutoScroll();
   };
 
-  // Auto-scroll functionality
   const startAutoScroll = useCallback(() => {
     if (autoScrollTimerRef.current) {
       clearInterval(autoScrollTimerRef.current);
@@ -66,7 +63,6 @@ const TopRead: React.FC<TopReadProps> = ({
     }, autoScrollInterval);
   }, [currentIndex, articles.length, autoScrollInterval, scrollToArticle]);
 
-  // Effect for auto-scrolling
   useEffect(() => {
     if (isAutoScrolling) {
       startAutoScroll();
@@ -79,7 +75,6 @@ const TopRead: React.FC<TopReadProps> = ({
     };
   }, [isAutoScrolling, startAutoScroll]);
 
-  // Manual navigation handlers
   const handlePrevious = () => {
     const prevIndex = currentIndex > 0 ? currentIndex - 1 : articles.length - 1;
     scrollToArticle(prevIndex);
@@ -120,19 +115,16 @@ const TopRead: React.FC<TopReadProps> = ({
         className="flex overflow-hidden scroll-smooth"
       >
         {articles.map((article, index) => (
-          <Link href={`/news/${article._id}`}    key={article._id} className="article-item flex-shrink-0 w-full md:w-1/3 p-4">
-          <div 
-          
-          
-
-          >
-            <div className="bg-white rounded-lg shadow-lg overflow-hidden transition-all duration-300 hover:scale-105">
+          <Link href={`/news/${article._id}`} key={article._id} className="article-item flex-shrink-0 w-full md:w-1/3 p-4">
+            <div className="bg-white rounded-lg shadow-lg overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-xl">
               {/* Image Section */}
               <div className="relative h-72 w-full group">
                 <Image
                   src={article.thumbnail}
                   alt={article.title}
-                  layout="fill"
+                  width={500}  // You can set a specific width and height
+                  height={500}
+                  style={{ objectFit: 'cover' }}
                   className="object-cover group-hover:scale-110 transition-transform duration-300"
                 />
                 {/* Overlay with read more */}
@@ -151,13 +143,13 @@ const TopRead: React.FC<TopReadProps> = ({
               </div>
 
               {/* Article Details */}
-              <div className="p-4">
+              <div className="p-4 flex flex-col h-full">
                 <h2 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2">
                   {article.title}
                 </h2>
                 
                 {/* Additional article metadata */}
-                <div className="flex justify-between text-sm text-gray-600">
+                <div className="flex justify-between text-sm text-gray-600 mt-auto">
                   {article.author && (
                     <span>By {article.author}</span>
                   )}
@@ -167,8 +159,7 @@ const TopRead: React.FC<TopReadProps> = ({
                 </div>
               </div>
             </div>
-          </div></Link>
-          
+          </Link>
         ))}
       </div>
     </div>

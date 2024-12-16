@@ -5,11 +5,12 @@ import TopRead from "@/components/TopRead";
 import { fetchNews } from "@/utils/newsArticles";
 
 interface Article {
+  _id: string;
   title: string;
   description: string;
   author: string;
   date: string;
-  imageUrl: string;
+  thumbnail: string;
   slug: string;
   category: string;
 }
@@ -47,7 +48,7 @@ const randomArticle = getRandomArticle(news.slice(0, 5));
       </div>
 
       <div className="container mx-auto px-4 py-12">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Top Read</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-3 pl-14">Top Read</h2>
         <TopRead articles={topArticles} />
       </div>
     </main>

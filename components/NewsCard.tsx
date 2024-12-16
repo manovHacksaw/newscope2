@@ -1,13 +1,15 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import React from 'react';
+
 
 interface NewsArticle {
-  id: string;
+  _id: string;
   title: string;
-  description: string;
+  description: string; // Raw HTML content
   author: string;
-  date: string;
-  imageUrl: string;
+  createdAt: string;
+  thumbnail: string;
   category: string;
 }
 
@@ -15,63 +17,77 @@ interface NewsCardProps {
   article: NewsArticle;
 }
 
-// Utility function to trim the title to 150 characters
-const truncateTitle = (title: string, maxLength: number = 150): string => {
-  return title.length > maxLength ? `${title.substring(0, maxLength)}...` : title;
+// Utility function to truncate HTML content while preserving tags
+const truncateHtml = (htmlString: string, maxLength: number = 150): string => {
+  let doc = new DOMParser().parseFromString(htmlString, 'text/html');
+  let bodyText = doc.body.textContent || "";
+
+  if (bodyText.length > maxLength) {
+    bodyText = bodyText.substring(0, maxLength) + '...';
+  }
+
+  return doc.body.innerHTML = bodyText;  // Return truncated HTML
 };
 
+// Utility function to format date in 'DD MMM YYYY' format
 function formatDate(dateString: string): string {
   const date = new Date(dateString);
-
-  // Specify options to format the date
   const options: Intl.DateTimeFormatOptions = {
-    day: '2-digit',    // Pad day with 0 if it's a single digit
-    month: 'short',    // Use the abbreviated month name
-    year: 'numeric',   // Use the full year
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
   };
 
-  return date.toLocaleDateString('en-GB', options); // Using en-GB for day-month-year format
+  return date.toLocaleDateString('en-GB', options);
 }
 
-const formattedDate = formatDate('2024-12-09T00:00:00.000Z');
-console.log(formattedDate); // Output: 09 Dec 2024
-
-
 const NewsCard: React.FC<NewsCardProps> = ({ article }) => {
-  console.log(article)
+  // Truncate HTML description for display
+  const truncatedDescription = truncateHtml(article.description, 150);
 
   return (
-    <Link href={`/news/${article._id}`}> 
-        <div className="bg-white cursor-pointer rounded-lg shadow-lg overflow-hidden hover:shadow-2xl hover:scale-105 transition-transform duration-300 h-full hover:bg-gray-50">
-      <div className="relative h-48 w-full group">
-        <Image
-          src={article.thumbnail}
-          alt={article.title}
-          fill
-          className="object-cover transition-transform duration-300 group-hover:scale-110"
-        />
-        <div className="absolute top-4 left-4 z-10">
-          <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm">
-            {article.category}
-          </span>
+    <Link href={`/news/${article._id}`}>
+      <div className="bg-white cursor-pointer rounded-lg shadow-lg overflow-hidden hover:shadow-2xl hover:scale-105 transition-transform duration-300 h-full hover:bg-gray-50">
+        {/* Image Section */}
+        <div className="relative h-48 w-full group">
+          <Image
+            src={article.thumbnail}
+            alt={article.title}
+            width={500}  // You can set a specific width and height
+            height={500}
+            style={{ objectFit: 'cover' }}
+            className="object-cover transition-transform duration-300 group-hover:scale-110"
+          />
+          <div className="absolute top-4 left-4 z-10">
+            <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm">
+              {article.category}
+            </span>
+          </div>
         </div>
-      </div>
-      <div className="p-6 h-[calc(100%-12rem)] flex flex-col justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2 hover:text-blue-600 transition-colors group-hover:text-blue-500">
-            {truncateTitle(article.title)}
-          </h2>
-          <p className="text-gray-600 mb-4 line-clamp-4 transition-all duration-300 opacity-80 group-hover:opacity-100">
-            {article.description}
-          </p>
-        </div>
-        <div className="flex justify-between items-center text-sm text-gray-500 mt-4">
-          <span>{article.author}</span>
-          <span>{formatDate(article.createdAt)}</span>
-        </div>
-      </div>
-    </div></Link>
 
+        {/* Content Section */}
+        <div className="p-6 h-[calc(100%-12rem)] flex flex-col justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2 hover:text-blue-600 transition-colors group-hover:text-blue-500">
+              {article.title}
+            </h2>
+            
+            {/* Render parsed and truncated HTML description */}
+            <div
+              className="text-gray-500 text-base transition-all duration-300 ease-in-out group-hover:text-gray-700"
+              style={{ maxHeight: '4.5rem', overflow: 'hidden' }}
+              dangerouslySetInnerHTML={{ __html: truncatedDescription }}
+            />
+          </div>
+
+          {/* Author and Date */}
+          <div className="flex justify-between items-center text-sm text-gray-500 mt-4">
+            <span>{article.author}</span>
+            <span>{formatDate(article.createdAt)}</span>
+          </div>
+        </div>
+      </div>
+    </Link>
   );
 };
 

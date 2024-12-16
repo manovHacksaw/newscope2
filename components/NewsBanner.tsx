@@ -1,3 +1,4 @@
+"use client";
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -11,6 +12,17 @@ interface NewsBannerProps {
   category: string;
 }
 
+const truncateHtml = (htmlString: string, maxLength: number = 150): string => {
+  let doc = new DOMParser().parseFromString(htmlString, 'text/html');
+  let bodyText = doc.body.textContent || "";
+
+  if (bodyText.length > maxLength) {
+    bodyText = bodyText.substring(0, maxLength) + '...';
+  }
+
+  return doc.body.innerHTML = bodyText;  // Return truncated HTML
+};
+
 export default function NewsBanner({
   title,
   description,
@@ -20,21 +32,25 @@ export default function NewsBanner({
   id,
   category,
 }: NewsBannerProps) {
+
+  const truncatedDescription = truncateHtml(description, 300);
+
   return (
     <Link
       href={`/news/${id}`}
-      className="block relative w-full group cursor-pointer"
+      className="block relative w-full group cursor-pointer mt-5 px-5"
     >
-      <div className="relative w-full h-[70vh] min-h-[600px] max-h-[800px] overflow-hidden rounded-2xl">
+      <div className="relative w-full h-[70vh] min-h-[600px] max-h-[800px] overflow-hidden rounded-2xl shadow-lg transition-transform duration-500 group-hover:scale-102 hover:shadow-2xl">
         {/* Background Image with Zoom Effect */}
         <div className="absolute inset-0">
           <Image
             src={imageUrl}
             alt={title}
             fill
-            className="object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out"
+            style={{ objectFit: 'cover' }}
+            className="object-cover  transform group-hover:scale-105 transition-transform duration-700 ease-out"
             priority
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw "
           />
           {/* Enhanced Gradient Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-90 group-hover:opacity-80 transition-opacity duration-500" />
@@ -60,14 +76,11 @@ export default function NewsBanner({
             </h1>
 
             {/* Description with Line Clamp */}
-            <p
-              className="text-base md:text-lg text-gray-200 mb-8 
-              line-clamp-3 md:line-clamp-2 
-              leading-relaxed opacity-90 group-hover:opacity-100 
-              transition-opacity duration-300"
-            >
-              {description}
-            </p>
+            <div
+              className="text-gray-300 my-2 text-base transition-all duration-300 ease-in-out group-hover:text-gray-700"
+              style={{ maxHeight: '4.5rem', overflow: 'hidden' }} // Truncate with overflow hidden
+              dangerouslySetInnerHTML={{ __html: truncatedDescription }}
+            />
 
             {/* Author and Date Info */}
             <div className="flex flex-wrap items-center gap-4 text-sm text-gray-300">

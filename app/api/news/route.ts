@@ -3,8 +3,8 @@ import { z } from "zod";
 
 import News from "@/models/News";
 import connectDB from "@/lib/mongoDb";
+import checkAuthentication from "@/lib/checkAuthentication";
 
-// Configure Cloudinary
 
 
 const newsFormSchema = z.object({
@@ -19,6 +19,18 @@ const newsFormSchema = z.object({
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     await connectDB();
+
+    // Check if the user is authenticated and an admin
+    const isAdmin = await checkAuthentication(request);
+    if (!isAdmin) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized: Only admins can create news.",
+        },
+        { status: 403 }
+      );
+    }
 
     const formData = await request.formData();
 

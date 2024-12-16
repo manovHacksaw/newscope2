@@ -27,7 +27,7 @@ export default function Navbar() {
         <div className="container mx-auto px-5 flex justify-between items-center">
           <Link href={"/"}>
             <div className="flex items-center cursor-pointer">
-              <Image src="/navLogo.png" height={150} width={150} alt="Newscope" className="" />
+              <Image src="/navLogo.png" height={150} width={150} alt="Newscope" className="w-auto h-auto" />
             </div>
           </Link>
 

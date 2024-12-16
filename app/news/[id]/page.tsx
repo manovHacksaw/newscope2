@@ -1,21 +1,28 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { Card } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { BackLink } from "@/components/BackLink";
 import { ArticleMeta } from "@/components/ArticleMeta";
 import { VideoEmbed } from "@/components/VideoEmbed";
+import { remark } from "remark";
+import html from "remark-html";
 
 // Helper function to calculate read time
 function calculateReadTime(content: string): string {
   const wordsPerMinute = 200; // Average reading speed
   const wordCount = content.split(/\s+/).length; // Count words by splitting on whitespace
   const readTime = Math.ceil(wordCount / wordsPerMinute); // Calculate and round up
-  return `${readTime} `;
+  return `${readTime} min`;
+}
+
+export async function parseMarkdownToHtml(markdown: string) {
+  const file = await remark().use(html).process(markdown);
+  return file.toString();
 }
 
 async function getNewsArticle(id: string) {
-  const res = await fetch(`http://localhost:3000/api/news/${id}`, { cache: "no-store" });
+  const url = `${process.env.NEXT_PUBLIC_BASE_URL}/api/news/${id}` 
+  const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) throw new Error("Failed to fetch news article");
   return (await res.json()).data;
 }
@@ -26,12 +33,26 @@ export default async function NewsArticlePage({
   params: { id: string };
 }) {
   const { id } = params;
-  const newsArticle = await getNewsArticle(id);
+  let newsArticle;
 
-  if (!newsArticle) notFound();
+  try {
+    newsArticle = await getNewsArticle(id);
+  } catch (error) {
+    console.error(error);
+    notFound(); // Redirect to a 404 page if the article fetch fails
+  }
+
+  if (!newsArticle) {
+    notFound();
+  }
 
   // Calculate the read time using the article content
   const readTime = calculateReadTime(newsArticle.description);
+  console.log(newsArticle.description)
+  const parsedDescription = await parseMarkdownToHtml(newsArticle.description
+  );
+
+  console.log(parsedDescription)
 
   return (
     <main className="container relative mx-auto max-w-4xl px-6 py-8">
@@ -45,9 +66,9 @@ export default async function NewsArticlePage({
           <div className="relative aspect-[2/1] overflow-hidden rounded-lg">
             <Image
               src={newsArticle.thumbnail}
-              alt={newsArticle.title}
+              alt={`Thumbnail for ${newsArticle.title}`}
               width={1200}
-              height={1200}
+              height={800}
               className="object-cover"
               priority
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -70,11 +91,10 @@ export default async function NewsArticlePage({
             />
 
             {/* Content */}
-            <div className="prose prose-gray max-w-none">
-              <p className="text-lg leading-relaxed text-muted-foreground">
-                {newsArticle.description}
-              </p>
-            </div>
+            <div
+              className="prose prose-gray color-gray max-w-none"
+              dangerouslySetInnerHTML={{ __html: newsArticle.description }} // Render parsed markdown as HTML
+            ></div>
 
             {/* Video Embed */}
             {newsArticle.videoLink && (

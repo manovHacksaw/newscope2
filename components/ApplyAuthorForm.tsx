@@ -3,14 +3,14 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertCircle, CheckCircle2, Upload } from 'lucide-react';
-import axios from 'axios';
+import { CldUploadWidget } from 'next-cloudinary';
 
 export default function ApplyAuthorForm() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [mobile, setMobile] = useState('');
   const [bio, setBio] = useState('');
-  const [resume, setResume] = useState<File | null>(null);
+  const [resumeUrl, setResumeUrl] = useState('');
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -21,7 +21,7 @@ export default function ApplyAuthorForm() {
     setError('');
     setSuccess(false);
 
-    if (!name || !email || !mobile || !bio || !resume || !agreeTerms) {
+    if (!name || !email || !mobile || !bio || !resumeUrl || !agreeTerms) {
       setError('Please fill in all fields and agree to the terms.');
       return;
     }
@@ -34,20 +34,22 @@ export default function ApplyAuthorForm() {
     }
 
     const formData = new FormData();
-    formData.append('name', name);
-    formData.append('email', email);
-    formData.append('mobile', mobile);
-    formData.append('bio', bio);
-    formData.append('resume', resume);
+
+    formData.append("name", name);
+    formData.append("email", email);
+    formData.append("mobile", mobile);
+    formData.append("bio", bio);
+    formData.append("resume", resumeUrl)
 
     try {
-      const response = await fetch("/api/author/apply", {
-        method: "POST",
-        body: formData
+      const response = await fetch('/api/author/apply', {
+        method: 'POST',
+       
+        body: formData,
       });
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         setSuccess(true);
         // Reset form fields
@@ -55,21 +57,15 @@ export default function ApplyAuthorForm() {
         setEmail('');
         setMobile('');
         setBio('');
-        setResume(null);
+        setResumeUrl('');
         setAgreeTerms(false);
-        console.log("Suceeded: ", result.data)
+        console.log('Succeeded: ', result.data);
       } else {
         setError(result.message || 'An error occurred. Please try again.');
       }
     } catch (err) {
       console.error(err);
       setError('An error occurred. Please try again.');
-    }
-  };
-
-  const handleResumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setResume(e.target.files[0]);
     }
   };
 
@@ -149,29 +145,33 @@ export default function ApplyAuthorForm() {
               <p className="text-xs text-gray-500 mt-1">Max 500 characters recommended.</p>
             </div>
 
-            {/* Resume Upload */}
-            <div>
+            {/* Resume Upload with Cloudinary */}
+            <div className="space-y-2">
               <label htmlFor="resume" className="block text-sm font-medium text-gray-700 mb-2">
                 Resume (PDF)
               </label>
-              <div className="flex items-center justify-center w-full">
-                <label className="flex flex-col w-full h-32 border-4 border-dashed border-gray-300 hover:bg-gray-50 hover:border-blue-300 transition duration-300 rounded-lg cursor-pointer">
-                  <div className="flex flex-col items-center justify-center pt-7">
-                    <Upload className="w-10 h-10 text-gray-400 group-hover:text-blue-500" />
-                    <p className="pt-1 text-sm tracking-wider text-gray-400 group-hover:text-blue-500">
-                      {resume ? resume.name : 'Select a PDF file'}
-                    </p>
-                  </div>
-                  <input
-                    type="file"
-                    id="resume"
-                    accept=".pdf"
-                    className="opacity-0 absolute"
-                    onChange={handleResumeChange}
-                    required
-                  />
-                </label>
-              </div>
+              <CldUploadWidget
+                uploadPreset="resume_upload"
+               
+                onSuccess={({ info }) => {
+                  setResumeUrl(info.secure_url);
+                  console.log('Uploaded resume URL: ', info.secure_url);
+                }}
+              >
+                {({ open }) => (
+                  <button
+                    type="button"
+                    onClick={() => open()}
+                    className="flex items-center justify-center w-full px-4 py-2 border border-dashed border-blue-500 rounded-lg text-blue-500 hover:bg-blue-50 hover:border-blue-700 transition duration-300"
+                  >
+                    <Upload className="w-5 h-5 mr-2" />
+                    {resumeUrl ? 'Resume Uploaded' : 'Upload Resume'}
+                  </button>
+                )}
+              </CldUploadWidget>
+              {resumeUrl && (
+                <p className="text-xs text-gray-500 mt-1">Uploaded: {resumeUrl.split('/').pop()}</p>
+              )}
             </div>
 
             {/* Terms Checkbox */}
